@@ -1,0 +1,18 @@
+body {
+  margin: 0%;
+  overflow: hidden;
+}
+
+#cnva {
+  background: rgb(30, 30, 30);
+  z-index: 1;
+  position: absolute;
+}
+
+#informer {
+  top: 10;
+  left: 10;
+  color: white;
+  z-index: 2;
+  position: absolute;
+}
