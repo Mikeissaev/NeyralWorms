@@ -66,7 +66,7 @@
       this.step = 0;
       this.age = 0;
       this.genom = genom;
-      console.log(this.genom);
+      
     }
 
     redrawDot() {
@@ -107,8 +107,8 @@
     killDot(id) {
 
       if (this.age >= cfg.cloningAge) {
-        addDot(this.pos.x, this.pos.y, "2");
-        addDot(this.pos.x, this.pos.y, "1");
+        addDot(this.pos.x, this.pos.y);
+        addDot(this.pos.x, this.pos.y);
         dotsList.splice(id, 1);
       }
       if (this.step == cfg.deathAge) {

@@ -10,8 +10,8 @@ body {
 }
 
 #informer {
-  top: 10;
-  left: 10;
+  top: 20;
+  left: 20;
   color: white;
   z-index: 2;
   position: absolute;
