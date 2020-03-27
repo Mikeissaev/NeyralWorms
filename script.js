@@ -3,7 +3,8 @@
   var meter = new FPSMeter({ theme: 'transparent', top: '5px', right: '5px', left: 'auto', maxFps: '100', });
   const cnv = document.getElementById('canvas');
   const ctx = cnv.getContext('2d');
-
+  let bestGenom;
+  let bestScore = 0;
   let totalSteps = 0;
   let cw, ch, cx, cy;
 
@@ -63,12 +64,13 @@
 
 
   class Dot {
-    constructor(x, y, genom = genomGenerate()) {
+    constructor(x, y, genom = bestGenom ? bestGenom : genomGenerate()) {
       this.pos = { x: x, y: y };
       this.dir = Math.trunc(Math.random()*8);
       this.step = 0;
       this.age = 0;
       this.genom = genom;
+      this.foodScore = 0;
     }
 
     redrawDot() {
@@ -103,7 +105,7 @@
     }
 
     changeDir() {
-      /*
+      
       let scan = [];
       for (let i = 0; i < 8; i++) {
         scan.push(Math.round(Math.random()));
@@ -116,11 +118,11 @@
           max = i
         }
       }
-      console.log(max)
+      //console.log(max)
       if(max == 2){this.dir = (this.dir + 1) % 8}
       if(max == 0){this.dir = (this.dir + 7) % 8}
-      */
-      this.dir = Math.random() > 0.5 ? (this.dir + 1) % 8 : (this.dir + 7) % 8;
+      
+     // this.dir = Math.random() > 0.5 ? (this.dir + 1) % 8 : (this.dir + 7) % 8;
     }
 
 
@@ -141,6 +143,12 @@
         if (Math.trunc(dotsList[id].pos.x) == Math.trunc(foodList[i].pos.x) && Math.trunc(dotsList[id].pos.y) == Math.trunc(foodList[i].pos.y)) {
           foodList.splice(i, 1);
           this.step -= cfg.foodEnergy;
+          this.foodScore ++;
+          if (this.foodScore > bestScore){
+            bestScore = this.foodScore;
+            bestGenom = this.genom;
+            console.log(bestGenom);
+          }
         }
       }
     }
@@ -189,9 +197,9 @@
   }
 
   function neyralNet(input, net) {
+    let output = {};
     for (let i = 0; i < 2; i++) {
       let layer = net.layers[i];
-      let output = {};
       for (let id in layer) {
         let node = layer[id];
         let sum = node.bias;
@@ -211,7 +219,7 @@
       let layer = genom.layers[i];
       for (let id in layer) {
         let node = layer[id];
-        node.bias = Math.random() * 4 - 2;
+        //node.bias = Math.random() * 4 - 2;
         for (let iid in node.weights) {
           node.weights[iid] = Math.random() * 2 - 1;
          //console.log(node.weights[iid]);
@@ -249,7 +257,7 @@
   function loop() {
     drawRect(`rgba(0, 0, 0, 0.1)`, 0, 0, cw, ch);
 
-    if (dotsList.length < cfg.dotsCount) { addDot(); }
+    if (dotsList.length < cfg.dotsCount) {addDot(); }
     addFood();
     refreshFood();
     refreshDots();
@@ -258,7 +266,8 @@
     document.getElementById('totalSteps').innerHTML = totalSteps;
     document.getElementById('countWorms').innerHTML = dotsList.length;
     document.getElementById('foodCount').innerHTML = foodList.length;
-
+    document.getElementById('bestScore').innerHTML = bestScore;
+    
     meter.tick();
     requestAnimationFrame(loop);
   }
