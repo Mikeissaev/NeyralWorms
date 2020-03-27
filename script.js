@@ -84,16 +84,16 @@
 
     moveDot() {
 
-      if (this.pos.x == cw-1) {
+      if (this.pos.x > cw) {
         this.pos.x = 1;
       }
-      if (this.pos.x <= 3) {
+      if (this.pos.x < 0) {
         this.pos.x = cw;
       }
-      if (this.pos.y >= ch) {
+      if (this.pos.y > ch) {
         this.pos.y = 0;
       }
-      if (this.pos.y <= 3) {
+      if (this.pos.y < 0) {
         this.pos.y = ch;
       }
       
@@ -105,7 +105,7 @@
     }
 
     changeDir() {
-      
+      /*
       let scan = [];
       for (let i = 0; i < 8; i++) {
         scan.push(Math.round(Math.random()));
@@ -121,7 +121,8 @@
       console.log(max)
       if(max == 2){this.dir = (this.dir + 1) % 8}
       if(max == 0){this.dir = (this.dir + 7) % 8}
-      //this.dir = Math.random() > 0.5 ? (this.dir + 1) % 8 : (this.dir + 7) % 8;
+      */
+      this.dir = Math.random() > 0.5 ? (this.dir + 1) % 8 : (this.dir + 7) % 8;
     }
 
 
@@ -215,6 +216,7 @@
         node.bias = Math.random() * 4 - 2;
         for (let iid in node.weights) {
           node.weights[iid] = Math.random() * 2 - 1;
+         // console.log(node.weights[iid]);
         }
       }
     }
