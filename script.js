@@ -20,7 +20,7 @@
     dotColor: "red",
     foodColor: "green",
     dotSize: 2,
-    dotsCount: 10,
+    dotsCount: 1,
     cloningAge: 400,
     deathAge: 350,
     maxDotsCount: 5000,
@@ -69,8 +69,6 @@
       this.step = 0;
       this.age = 0;
       this.genom = genom;
-      //console.log(this.genom);
-      
     }
 
     redrawDot() {
@@ -191,13 +189,13 @@
   }
 
   function neyralNet(input, net) {
-    for (var i = 0; i < 2; i++) {
-      var layer = net.layers[i];
-      var output = {};
-      for (var id in layer) {
-        var node = layer[id];
-        var sum = node.bias;
-        for (var iid in node.weights) {
+    for (let i = 0; i < 2; i++) {
+      let layer = net.layers[i];
+      let output = {};
+      for (let id in layer) {
+        let node = layer[id];
+        let sum = node.bias;
+        for (let iid in node.weights) {
           sum += node.weights[iid] * input[iid];
         }
         output[id] = (1 / (1 + Math.exp(-sum)));
@@ -216,10 +214,12 @@
         node.bias = Math.random() * 4 - 2;
         for (let iid in node.weights) {
           node.weights[iid] = Math.random() * 2 - 1;
-         // console.log(node.weights[iid]);
+         //console.log(node.weights[iid]);
         }
       }
     }
+    console.log('genom generated');
+    //console.log(genom);
     return genom;
   }
   function genomMutation(genom){
@@ -229,11 +229,20 @@
         let node = layer[id];
         node.bias = Math.random() < cfg.mutPercent /100 ? Math.random() * cfg.mutSize/100: 1;
         for (let iid in node.weights) {
-          node.weights[iid] *= Math.random() < cfg.mutPercent /100 ? Math.random() * cfg.mutSize/100: 1;
+          if (  Math.random() < cfg.mutPercent /100 ) {
+            //console.log('weights mutated');
+            //console.log(node.weights[iid])
+            node.weights[iid] *= Math.random() * cfg.mutSize/100;
+            //console.log(node.weights[iid]);
+            
+          }
         }
       }
     }
+    console.log('genom mutated');
+    //console.log(genom);
     return genom;
+    
   }
  
 
