@@ -1,9 +1,10 @@
 (() => {
+  
 
   var meter = new FPSMeter({ theme: 'transparent', top: '5px', right: '5px', left: 'auto', maxFps: '100', });
   const cnv = document.getElementById('canvas');
   const ctx = cnv.getContext('2d');
-  let bestGenom; //Для хранения генома с лучшим результатом
+  let bestGenom = genomGenerate(); //Для хранения генома с лучшим результатом
   let bestScore = 0; // Счётчик лучшего результата
   let totalSteps = 0; // Шаги с начала симуляции
   let cw, ch, cx, cy;
@@ -20,16 +21,16 @@
   const cfg = {
     dotColor: "red",    // Цвет существ
     foodColor: "green", // Цвет еды
-    dotSize: 2,         // Размер еды и существ
+    dotSize: 1,         // Размер еды и существ
     dotsCount: 1,       // Стартовое количество существ
-    cloningAge: 400,    // Возраст, при котором существа делятся
-    deathAge: 350,      // Возраст, при котором существа погибают
-    maxDotsCount: 5000, // Максимальное количество существ в симуляции
+    cloningAge: 100,    // Возраст, при котором существа делятся
+    deathAge: 50,      // Возраст, при котором существа погибают
+    maxDotsCount: 100, // Максимальное количество существ в симуляции
     foodCount: 1000,    // Количество еды 
     foodEnergy: 100,    // Количество енергии от еденицы еды
-    mutPercent: 5,      // Какой процент генов изменится при мутации
-    mutSize: 5,         // На сколько гены изменятся при мутации
-    viewRadius: 20,     // Радиус обзора существа
+    mutPercent: 10,     // Какой процент генов изменится при мутации
+    mutSize: 10,        // На сколько гены изменятся при мутации
+    viewRadius: 10,      // Радиус обзора существа
   }
   
   // Функция отрисовки
@@ -41,8 +42,8 @@
   // Описание свойств еденицы еды
   class Food {
     constructor() {
-      let x = Math.random() * cw;
-      let y = Math.random() * ch;
+      let x = Math.trunc(Math.random() * cw);
+      let y = Math.trunc(Math.random() * ch);
       this.pos = { x, y };
       this.color = cfg.foodColor;
     }
@@ -65,7 +66,7 @@
 
   // Описание свойств и методов существ
   class Dot {
-    constructor(x, y, genom = bestGenom ? bestGenom : genomGenerate()) {
+    constructor(x, y, genom = genomMutation(bestGenom)) {
       this.pos = { x: x, y: y };
       this.dir = Math.trunc(Math.random()*8);
       this.step = 0;
@@ -107,11 +108,9 @@
     // Функция смены направления движения
     changeDir() {
       let scan = foodScan(this.pos) // Сканируем местность на наличие еды
-      
-      for (let i = 0; i < 8; i++) {
-        scan.push(Math.round(Math.random()));
-      }
       scan.push(this.dir/10); // Добавляем данные о текущем направлении /10
+     
+      document.getElementById('scan').innerHTML = scan;
       let output = neyralNet(scan, this.genom) // Отправляем в нейроную сеть данные сканирования и геном существа
       let max = 0
       for (let i in output) {
@@ -141,14 +140,14 @@
     // Функция поглощения еды
     getFood(id) {
       for (let i = 0; i < foodList.length; i++) {
-        if (Math.trunc(dotsList[id].pos.x) == Math.trunc(foodList[i].pos.x) && Math.trunc(dotsList[id].pos.y) == Math.trunc(foodList[i].pos.y)) {
+        if (Math.trunc(dotsList[id].pos.x) == foodList[i].pos.x && Math.trunc(dotsList[id].pos.y) == foodList[i].pos.y) {
           foodList.splice(i, 1);
           this.step -= cfg.foodEnergy;
           this.foodScore ++;
           if (this.foodScore > bestScore){
             bestScore = this.foodScore;
             bestGenom = this.genom;
-            console.log(bestGenom);
+           // console.log(bestGenom);
           }
         }
       }
@@ -259,16 +258,21 @@
   // Функция сканирования поля вокруг существа
   function foodScan(pos) {
     let vector;
-    let scan = [];
+    scan = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     for (let fy = Math.trunc(pos.y) - cfg.viewRadius; fy <= Math.trunc(pos.y) + cfg.viewRadius; fy++) {
-      for (let fx = Math.trunc(pos.x)/ - cfg.viewRadius; fx <= Math.trunc(pos.x) + cfg.viewRadius; fx++){
-        for (i in foodList) {
-          if (fx == foodList[i].pos.x && fy == foodList[i]) {
-            
+      for (let fx = Math.trunc(pos.x) - cfg.viewRadius; fx <= Math.trunc(pos.x) + cfg.viewRadius; fx++){
+        for (let i=0; i< foodList.length; i++) {
+          if (fx == foodList[i].pos.x && fy == foodList[i].pos.y) {
+            let angle = Math.acos(fx / Math.sqrt(fx * fx + fy * fy)) * 180 / Math.PI; // Вычисляем угол на координаты еды относительно оси x
+            if (fx < 0 && fy < 0) { angle += 90 }
+            if (fy < 0 && fx >= 0) { angle = 360 - angle }
+            vector = (angle < 22.5) ? 0 : (angle < 67.5) ? 1 : (angle < 112.5) ? 2 : (angle < 157.5) ? 3 : (angle < 202.5) ? 4 : (angle < 247.5) ? 5 : (angle < 292.5) ? 6 : (angle < 337.5) ? 7 : 0;
+           // scan[vector] = scan[vector].toFixed(1);
+            scan[vector] = 1; // += (scan[vector] >= 1) ? 0 : .1;
           }
         }
       }
-    }
+    } return scan;
   }
   
   // Фукция бесконечного цикла
@@ -279,7 +283,7 @@
     addFood();
     refreshFood();
     refreshDots();
-
+    
     totalSteps++;
     document.getElementById('totalSteps').innerHTML = totalSteps;
     document.getElementById('countWorms').innerHTML = dotsList.length;
