@@ -4,7 +4,7 @@
   var meter = new FPSMeter({ theme: 'transparent', top: '5px', right: '5px', left: 'auto', maxFps: '100', });
   const cnv = document.getElementById('canvas');
   const ctx = cnv.getContext('2d');
-  let bestGenom = genomGenerate(); //Для хранения генома с лучшим результатом
+  let bestGenom; //Для хранения генома с лучшим результатом
   let bestScore = 0; // Счётчик лучшего результата
   let totalSteps = 0; // Шаги с начала симуляции
   let cw, ch, cx, cy;
@@ -23,14 +23,14 @@
     foodColor: "green", // Цвет еды
     dotSize: 1,         // Размер еды и существ
     dotsCount: 1,       // Стартовое количество существ
-    cloningAge: 100,    // Возраст, при котором существа делятся
-    deathAge: 50,      // Возраст, при котором существа погибают
-    maxDotsCount: 100, // Максимальное количество существ в симуляции
-    foodCount: 1000,    // Количество еды 
-    foodEnergy: 100,    // Количество енергии от еденицы еды
+    cloningAge: 400,    // Возраст, при котором существа делятся
+    deathAge: 390,      // Возраст, при котором существа погибают
+    maxDotsCount: 100,  // Максимальное количество существ в симуляции
+    foodCount: 500,     // Количество еды 
+    foodEnergy: 200,    // Количество енергии от еденицы еды
     mutPercent: 10,     // Какой процент генов изменится при мутации
     mutSize: 10,        // На сколько гены изменятся при мутации
-    viewRadius: 10,      // Радиус обзора существа
+    viewRadius: 10,     // Радиус обзора существа
   }
   
   // Функция отрисовки
@@ -66,7 +66,7 @@
 
   // Описание свойств и методов существ
   class Dot {
-    constructor(x, y, genom = genomMutation(bestGenom)) {
+    constructor(x, y, genom = bestGenom ? genomMutation(bestGenom) : genomGenerate()) {
       this.pos = { x: x, y: y };
       this.dir = Math.trunc(Math.random()*8);
       this.step = 0;
@@ -109,7 +109,7 @@
     changeDir() {
       let scan = foodScan(this.pos) // Сканируем местность на наличие еды
       scan.push(this.dir/10); // Добавляем данные о текущем направлении /10
-     
+      
       document.getElementById('scan').innerHTML = scan;
       let output = neyralNet(scan, this.genom) // Отправляем в нейроную сеть данные сканирования и геном существа
       let max = 0
@@ -147,7 +147,7 @@
           if (this.foodScore > bestScore){
             bestScore = this.foodScore;
             bestGenom = this.genom;
-           // console.log(bestGenom);
+            console.log(bestGenom);
           }
         }
       }
@@ -257,22 +257,27 @@
   
   // Функция сканирования поля вокруг существа
   function foodScan(pos) {
-    let vector;
+    
     scan = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     for (let fy = Math.trunc(pos.y) - cfg.viewRadius; fy <= Math.trunc(pos.y) + cfg.viewRadius; fy++) {
       for (let fx = Math.trunc(pos.x) - cfg.viewRadius; fx <= Math.trunc(pos.x) + cfg.viewRadius; fx++){
         for (let i=0; i< foodList.length; i++) {
           if (fx == foodList[i].pos.x && fy == foodList[i].pos.y) {
-            let angle = Math.acos(fx / Math.sqrt(fx * fx + fy * fy)) * 180 / Math.PI; // Вычисляем угол на координаты еды относительно оси x
-            if (fx < 0 && fy < 0) { angle += 90 }
-            if (fy < 0 && fx >= 0) { angle = 360 - angle }
-            vector = (angle < 22.5) ? 0 : (angle < 67.5) ? 1 : (angle < 112.5) ? 2 : (angle < 157.5) ? 3 : (angle < 202.5) ? 4 : (angle < 247.5) ? 5 : (angle < 292.5) ? 6 : (angle < 337.5) ? 7 : 0;
-           // scan[vector] = scan[vector].toFixed(1);
-            scan[vector] = 1; // += (scan[vector] >= 1) ? 0 : .1;
+            //console.log(foodList[i].pos.x + ', '+ foodList[i].pos.y)
+            let foodx = foodList[i].pos.x - pos.x;
+            let foody = foodList[i].pos.y - pos.y;
+            let angle = Math.acos(foodx / Math.sqrt(foodx * foodx + foody * foody)) * 180 / Math.PI; // Вычисляем угол на координаты еды относительно оси x
+            if (foodx < 0 && foody < 0) { angle += 90 }
+            if (foody < 0 && foodx >= 0) { angle = 360 - angle }
+          let  vector = (angle < 22.5) ? 0 : (angle < 67.5) ? 1 : (angle < 112.5) ? 2 : (angle < 157.5) ? 3 : (angle < 202.5) ? 4 : (angle < 247.5) ? 5 : (angle < 292.5) ? 6 : (angle < 337.5) ? 7 : 0;
+           //console.log();
+            scan[vector] = 1; 
           }
         }
       }
-    } return scan;
+    } 
+    
+    return scan;
   }
   
   // Фукция бесконечного цикла
